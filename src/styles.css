@@ -1,0 +1,45 @@
+import { describe, expect, it } from 'vitest';
+import { buildValuationScenarios, calculateMACD, calculateRSI, calculateSMA, computeGrossMargin, computeNetMargin, computeOperatingMargin, computeRevenueGrowth, safeNumber } from '../lib/analytics';
+
+describe('analytics utilities', () => {
+  it('handles missing data without treating it as zero', () => {
+    expect(safeNumber(null)).toBeNull();
+    expect(safeNumber(undefined)).toBeNull();
+  });
+
+  it('computes revenue growth correctly', () => {
+    expect(computeRevenueGrowth([100, 120, 150])).toBeCloseTo(50, 5);
+    expect(computeRevenueGrowth([100, null, 120])).toBeCloseTo(20, 5);
+  });
+
+  it('computes margins correctly', () => {
+    expect(computeGrossMargin(60, 200)).toBeCloseTo(30, 5);
+    expect(computeOperatingMargin(30, 200)).toBeCloseTo(15, 5);
+    expect(computeNetMargin(20, 200)).toBeCloseTo(10, 5);
+  });
+
+  it('calculates simple moving average', () => {
+    const sma = calculateSMA([10, 20, 30, 40], 2);
+    expect(sma).toEqual([10, 15, 25, 35]);
+  });
+
+  it('calculates RSI for a strong uptrend', () => {
+    const prices = [50, 51, 52, 54, 58, 60, 62, 65];
+    const rsi = calculateRSI(prices, 7);
+    expect(rsi).toBeGreaterThan(60);
+  });
+
+  it('calculates MACD and signal', () => {
+    const prices = [100, 101, 102, 104, 103, 106, 108, 111, 113, 116];
+    const macd = calculateMACD(prices, 3, 6, 2);
+    expect(macd.macd).not.toBeNaN();
+    expect(macd.signal).not.toBeNaN();
+  });
+
+  it('builds valuation scenarios from assumptions', () => {
+    const scenarios = buildValuationScenarios(100, 1000, 15, 8, 3, 5);
+    expect(scenarios.bear).not.toBeNull();
+    expect(scenarios.base).not.toBeNull();
+    expect(scenarios.bull).not.toBeNull();
+  });
+});
